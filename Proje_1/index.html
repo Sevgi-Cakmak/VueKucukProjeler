@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sinav Notlari</title>
+    <style>
+    #app {
+      display: inline-block;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 300px;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      padding: 5px;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    </style>
+</head>
+<body> 
+    
+  <h1>Başari Durumu</h1>
+
+  <p>Öğrenci notuna göre başari durumunu veren kod bloğu</p>
+
+  <div id="app">
+ 
+
+   <p>
+    Adiniz :
+    <input type="text"  placeholder="isminizi yaziniz.." v-model="firstName">
+   </p>
+
+   <p>
+    Soyadiniz :
+    <input type="text"  placeholder="soyadinizi yaziniz.." v-model="lastName">
+   </p>
+
+   <p>
+    1. Sinav Notu:
+    <input type="number" placeholder="1. Sinav Notu.." v-model="Sinav1">
+   </p>
+
+   <p>
+    2. Sinav Notu:
+    <input type="number" placeholder="2. Sinav Notu.." v-model="Sinav2">
+   </p>
+
+   <p>
+    3. Sinav Notu:
+    <input type="number" placeholder="3. Sinav Notu.." v-model="Sinav3">
+   </p>
+
+   <p> {{ hataMesaj }} </p>
+  <button v-on:click="sonucHesapla">Sonuc Için Tikla</button>
+
+  <div>
+    <h1>Listemiz:</h1>
+    <ul>
+        <li v-for="(ogrenci, index) in ogrenciSonucu" :key="index">
+         {{ ogrenci.tümİsimler }} - Not Ortalamasi: {{ ogrenci.Ortalama }} - {{ ogrenci.Durum }}
+         <button v-on:click="ogrenciSil(index)">Sil</button>
+        </li>
+    </ul>
+  </div> 
+
+
+  </div>
+ 
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+<script>
+    const app = Vue.createApp({
+        data() {
+            return {
+                hataMesaj:"",
+                firstName: "",
+                lastName: "",
+                Sinav1: null,
+                Sinav2: null,
+                Sinav3: null,
+                ogrenciSonucu: []
+            };
+        },
+        methods: {
+            sonucHesapla() {
+                this.hataMesaj= "";
+                if (
+                    this.firstName.trim() === "" ||
+                    this.lastName.trim() === "" ||
+                    this.Sinav1 === null ||
+                    this.Sinav2 === null ||
+                    this.Sinav3 === null
+                ) {
+                    return;
+                } if ( this.Sinav1<0  ||  this.Sinav1>100) {
+                    this.hataMesaj= "1.Sinav hatali girilmiştir.";
+                    return;
+                }
+                  
+                const toplam = this.Sinav1  + this.Sinav2 + this.Sinav3;
+                const Ortalama = toplam / 3;
+                const Durum = Ortalama >= 50 ? (Ortalama > 50 ? "Başarili bir öğrenci" : "Orta derecede bir öğrenci") : "Başarisiz bir öğrenci";
+
+                const ogrenciBilgisi = {
+                    tümİsimler: this.firstName + " " + this.lastName,
+                    Ortalama: Ortalama.toFixed(2),
+                    Durum
+                };
+                this.ogrenciSonucu.push(ogrenciBilgisi);
+
+                this.firstName = "";
+                this.lastName = "";
+                this.Sinav1 = null;
+                this.Sinav2 = null;
+                this.Sinav3 = null;
+            },
+            ogrenciSil(index) {
+                this.ogrenciSonucu.splice(index, 1);
+            }
+        }
+    });
+    app.mount("#app");
+</script>
+ 
+</body>
+</html>

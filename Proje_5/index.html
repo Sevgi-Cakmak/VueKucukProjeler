@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ürün Deposu</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    #app {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    tr:hover {
+      background-color: #f5f5f5;
+    }
+    .alert {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <h1>Ürün Deposu</h1>
+  <table>
+    <tr>
+      <th>Ürün ID</th>
+      <th>Ürün Adi</th>
+      <th>Fiyat</th>
+      <th>Stok</th>
+    </tr>
+    <tr v-for="(urun, index) in depodakiUrunler" :key="index">
+      <td>{{ urun.urunId }}</td>
+      <td>{{ urun.urunAdi }}</td>
+      <td>{{ urun.fiyat }}</td>
+      <td>{{ urun.stok }}</td>
+      <td><button @click="sepeteEkle(urun)">Sepete Ekle</button></td>
+    </tr>
+  </table>
+  <h2>Meyve Sepeti</h2>
+  <table>
+    <tr>
+      <th>Ürun Adi</th>
+      <th>Fiyat</th>
+      <th>Miktar</th>
+      <th>Toplam Fiyat</th>
+      <th></th>
+    </tr>
+    <tr v-for="(urun, index) in meyveSepeti" :key="index"> 
+      <td>{{ urun.urunAdi }}</td> 
+      <td>{{ urun.fiyat }}</td>
+      <td>
+        <button @click="miktarArtir(urun)">+</button>
+        {{ urun.miktar }}
+        <button @click="miktarAzalt(urun, index)">-</button>
+      </td>
+      <td>{{ urun.toplamFiyat }}</td>
+      <td><button @click="urunuSil(index, urun.miktar)">Sil</button></td>
+    </tr>
+    <tr>
+      <td colspan="3"><strong>Toplam:</strong></td>
+      <td><strong>{{ toplamSepetFiyati.toFixed(2) }}</strong></td>
+      <td></td>
+    </tr>
+  </table>
+  <div v-if="showAlert" class="alert">
+    {{ alertMessage }}
+  </div>
+</div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script>
+const uygulama = Vue.createApp({
+  data() {
+    return {
+      depodakiUrunler: [
+        { urunId: 1, urunAdi: "Elma", fiyat: 2.5, stok: 25 },
+        { urunId: 2, urunAdi: "Armut", fiyat: 2.0, stok: 15 },
+        { urunId: 3, urunAdi: "Portakal", fiyat: 3.0, stok: 10 },
+        { urunId: 4, urunAdi: "Muz", fiyat: 2.0, stok: 20 },
+      ],
+      meyveSepeti: [],
+      showAlert: false,
+      alertMessage: "",
+      toplamSepetFiyati: 0,
+    };
+  },
+  methods: {
+    sepeteEkle(urun) {
+      if (urun.stok === 0) {
+        this.gosterUyari(`${urun.urunAdi} stokta tükenmiştir.`);
+        return;
+      }
+      const sepettekiUrun = this.meyveSepeti.find(item => item.urunId === urun.urunId);
+      if (sepettekiUrun) {
+        sepettekiUrun.miktar++;
+        sepettekiUrun.toplamFiyat = sepettekiUrun.miktar * sepettekiUrun.fiyat;
+      } else {
+        this.meyveSepeti.push({
+          urunId: urun.urunId,
+          urunAdi: urun.urunAdi,
+          fiyat: urun.fiyat,
+          miktar: 1,
+          toplamFiyat: urun.fiyat,
+        });
+      }
+      urun.stok--;
+      this.guncelleToplamSepetFiyati();
+    },
+
+    miktarArtir(urun){
+      if (urun.miktar > 0) {
+      urun.miktar++;
+      urun.toplamFiyat = urun.miktar * urun.fiyat;
+      
+      const stokUrun = this.depodakiUrunler.find(item => item.urunId === urun.urunId);
+      if (stokUrun) {
+        stokUrun.stok--;
+      }
+      this.guncelleToplamSepetFiyati();
+    }
+    },
+
+
+
+    miktarAzalt(urun, index) {
+  if (urun.miktar > 1) {
+    urun.miktar--;
+    urun.toplamFiyat = urun.miktar * urun.fiyat;
+
+    const depodakiUrun = this.depodakiUrunler.find(item => item.urunId === urun.urunId);
+    if (depodakiUrun) {
+      depodakiUrun.stok++;
+    }
+    this.guncelleToplamSepetFiyati();
+  } else if (urun.miktar === 1) {
+    const depodakiUrun = this.depodakiUrunler.find(item => item.urunId === urun.urunId);
+    if (depodakiUrun) {
+      depodakiUrun.stok++;
+    }
+
+    this.meyveSepeti.splice(index, 1);
+    this.guncelleToplamSepetFiyati();
+  } else {
+    
+    this.meyveSepeti.splice(index, 1);
+    this.guncelleToplamSepetFiyati();
+  }
+},
+
+
+    urunuSil(index, miktar) {
+      const silinenUrun = this.meyveSepeti[index];
+      const depodakiUrun = this.depodakiUrunler.find(item => item.urunId === silinenUrun.urunId);
+
+      if (depodakiUrun) {
+        depodakiUrun.stok += miktar;
+      }
+
+      this.meyveSepeti.splice(index, 1);
+      this.guncelleToplamSepetFiyati();
+    },
+
+
+
+    gosterUyari(mesaj) {
+      this.alertMessage = mesaj;
+      this.showAlert = true;
+      setTimeout(() => {
+        this.showAlert = false;
+      }, 5000); 
+    },
+    guncelleToplamSepetFiyati() {
+          this.toplamSepetFiyati = this.meyveSepeti.reduce((total, urun) => total + urun.toplamFiyat, 0);
+    },
+  },
+});
+uygulama.mount("#app");
+</script>
+</body>
+</html>
